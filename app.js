@@ -1,18 +1,23 @@
 import express from 'express'
 import cors from 'cors'
 import morgan from "morgan";
-
+import path from 'path'
 import tourRouter from './routes/tourRoutes.js'
 import userRouter from './routes/userRoutes.js'
+import { nodeEnv } from './variables.js';
 
+const __dirname = path.resolve()
 //!DEEFINE THE APP
 const app = express()
 
 //!MIDDLEWARES
-app.use(cors())
-app.use(morgan("dev"))
-app.use(express.json())
+if (nodeEnv === "development") {
+    app.use(morgan("dev"))
+}
 
+app.use(cors())
+app.use(express.json())
+app.use(express.static(`${__dirname}/public`))
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString()
     next()
@@ -21,9 +26,8 @@ app.use((req, res, next) => {
 app.use("/api/v1/tours", tourRouter)
 app.use("/api/v1/users", userRouter)
 
-
-
-const port = 5000
-app.listen(port, () => {
-    console.log(`App running on port ${port}`);
+app.get('/', (req, res) => {
+    res.send('GET request to the homepage')
 })
+
+export default app

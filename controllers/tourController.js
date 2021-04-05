@@ -5,6 +5,18 @@ const __dirname = path.resolve();
 const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`))
 
 
+export const checkTourId = (req, res, next, val) => {
+    const tour = tours.find(el => el.id === Number(val))
+    // if (id > tours.length) {
+    if (!tour) {
+        return res.status(404).json({
+            status: "failed",
+            message: "Invalid Id"
+        })
+    }
+    next()
+}
+
 export const getAllTours = (req, res) => {
     if (!tours) {
         return res.status(404).json({
@@ -26,13 +38,6 @@ export const getTour = (req, res) => {
     const id = req.params.id
     const tour = tours.find(el => el.id === Number(id))
 
-    // if (id > tours.length) {
-    if (!tour) {
-        return res.status(404).json({
-            status: "failed",
-            message: "Invalid Id"
-        })
-    }
     res.status(200).json({
         status: "success",
         data: {
@@ -45,13 +50,6 @@ export const updateTour = (req, res) => {
     const id = req.params.id
     const tour = tours.find(el => el.id === Number(id))
 
-    // if (id > tours.length) {
-    if (!tour) {
-        return res.status(404).json({
-            status: "failed",
-            message: "Invalid Id"
-        })
-    }
     res.status(200).json({
         status: "success",
         data: {
@@ -63,14 +61,6 @@ export const updateTour = (req, res) => {
 export const deleteTour = (req, res) => {
     const id = req.params.id
     const tour = tours.find(el => el.id === Number(id))
-
-    // if (id > tours.length) {
-    if (!tour) {
-        return res.status(404).json({
-            status: "failed",
-            message: "Invalid Id"
-        })
-    }
     res.status(204).json({
         status: "success",
         data: null
@@ -92,4 +82,15 @@ export const createTour = (req, res) => {
             }
         })
     })
+}
+
+export const checkTourBody = (req, res, next) => {
+    const tour = req.body
+    if (!tour.name || !tour.price) {
+        return res.status(400).json({
+            status: "failed",
+            message: "Missing Price or Name for the Tour"
+        })
+    }
+    next()
 }
