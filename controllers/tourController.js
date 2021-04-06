@@ -1,96 +1,97 @@
-import fs from 'fs'
-import path from 'path'
+import Tour from '../models/tourModel.js'
 
-const __dirname = path.resolve();
-const tours = JSON.parse(fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`))
+export const getAllTours = async (req, res) => {
 
-
-export const checkTourId = (req, res, next, val) => {
-    const tour = tours.find(el => el.id === Number(val))
-    // if (id > tours.length) {
-    if (!tour) {
-        return res.status(404).json({
+    try {
+        const tours = await Tour.find()
+        res.status(200).json({
+            status: "success",
+            results: tours.length,
+            data: {
+                tours
+            }
+        })
+    } catch (error) {
+        res.status(404).json({
             status: "failed",
-            message: "Invalid Id"
+            message: error.message
         })
     }
-    next()
 }
 
-export const getAllTours = (req, res) => {
-    if (!tours) {
-        return res.status(404).json({
+export const getTour = async (req, res) => {
+    try {
+        const id = req.params.id
+
+        const tour = await Tour.findById(id)
+
+        res.status(200).json({
+            status: "success",
+            data: {
+                tour
+            }
+        })
+    } catch (error) {
+        res.status(404).json({
             status: "failed",
-            message: "No Tours Found"
+            message: error.message
         })
     }
-    res.status(200).json({
-        status: "success",
-        requestedAt: req.requestTime,
-        results: tours.length,
-        data: {
-            tours
-        }
-    })
 }
 
-export const getTour = (req, res) => {
-    const id = req.params.id
-    const tour = tours.find(el => el.id === Number(id))
+export const updateTour = async (req, res) => {
+    try {
+        const id = req.params.id
+        const tour = await Tour.findByIdAndUpdate(id, req.body, {
+            new: true,
+            runValidators: true
+        })
 
-    res.status(200).json({
-        status: "success",
-        data: {
-            tour
-        }
-    })
+        res.status(200).json({
+            status: "success",
+            data: {
+                tour
+            }
+        })
+    } catch (error) {
+        res.status(404).json({
+            status: "failed",
+            message: error.message
+        })
+    }
 }
 
-export const updateTour = (req, res) => {
-    const id = req.params.id
-    const tour = tours.find(el => el.id === Number(id))
+export const deleteTour = async (req, res) => {
+    try {
+        const id = req.params.id
+        await Tour.findByIdAndDelete(id)
 
-    res.status(200).json({
-        status: "success",
-        data: {
-            tour: "UPDATED TOUR HERE"
-        }
-    })
+        res.status(204).json({
+            status: "success",
+            data: null
+        })
+    } catch (error) {
+        res.status(404).json({
+            status: "failed",
+            message: error.message
+        })
+    }
 }
 
-export const deleteTour = (req, res) => {
-    const id = req.params.id
-    const tour = tours.find(el => el.id === Number(id))
-    res.status(204).json({
-        status: "success",
-        data: null
-    })
-}
-
-export const createTour = (req, res) => {
-    // console.log(req.body);
-
-    const newId = tours[tours.length - 1].id + 1
-    const newTour = Object.assign({ id: newId }, req.body)
-    tours.push(newTour)
-
-    fs.writeFile(`${__dirname}/dev-data/data/tours-simple.json`, JSON.stringify(tours), (err) => {
+export const createTour = async (req, res) => {
+    try {
+        const newTour = await Tour.create(req.body)
         res.status(201).json({
             status: "success",
             data: {
                 tour: newTour
             }
         })
-    })
-}
-
-export const checkTourBody = (req, res, next) => {
-    const tour = req.body
-    if (!tour.name || !tour.price) {
-        return res.status(400).json({
+    } catch (error) {
+        res.status(400).json({
             status: "failed",
-            message: "Missing Price or Name for the Tour"
+            message: error.message
         })
     }
-    next()
 }
+
