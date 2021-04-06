@@ -1,7 +1,10 @@
 import express from 'express'
-import { createTour, deleteTour, getAllTours, getTour, updateTour } from '../controllers/tourController.js'
+import { aliasTopTours, createTour, deleteTour, getAllTours, getTour, updateTour } from '../controllers/tourController.js'
 
 const router = express.Router()
+
+router.route('/top-five-cheap')
+    .get(aliasTopTours, getAllTours)
 
 router.route('/')
     .get(getAllTours)
