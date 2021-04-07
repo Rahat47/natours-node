@@ -1,4 +1,5 @@
 import Tour from '../models/tourModel.js'
+import APIFeatures from '../utils/apiFeatures.js'
 
 export const aliasTopTours = async (req, res, next) => {
     req.query.limit = "5"
@@ -8,47 +9,14 @@ export const aliasTopTours = async (req, res, next) => {
 }
 
 export const getAllTours = async (req, res) => {
-    //TODO BUILD QUERY
-    //!1 Filtering
-    const queryObject = { ...req.query }
-    const exludedFields = ["page", "sort", "limit", "fields"]
-    exludedFields.forEach(field => delete queryObject[field])
-
-    //!2 Advanced Filtering
-    let queryStr = JSON.stringify(queryObject)
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, match => `$${match}`)
-
     try {
-        let query = Tour.find(JSON.parse(queryStr)).sort(req.query.sort)
+        const features = new APIFeatures(Tour.find(), req.query)
+            .filter()
+            .sort()
+            .limitFields()
+            .paginate()
 
-        //!3 Sorting
-        if (req.query.sort) {
-            const sortBy = req.query.sort.split(',').join(' ')
-            query = query.sort(sortBy)
-        } else {
-            query = query.sort("-createdAt")
-        }
-
-        //!4 Field Limiting
-        if (req.query.fields) {
-            const fields = req.query.fields.split(',').join(' ')
-            query = query.select(fields)
-        } else {
-            query = query.select("-__v")
-        }
-
-        //!5 Pagination
-        const page = req.query.page * 1 || 1
-        const limit = req.query.limit * 1 || 100
-        const skip = (page - 1) * limit
-        query = query.skip(skip).limit(limit)
-
-        if (req.query.page) {
-            const numTours = await Tour.countDocuments()
-            if (skip > numTours) throw new Error("This page does not exist")
-        }
-
-        const tours = await query
+        const tours = await features.query
 
         res.status(200).json({
             status: "success",
@@ -71,7 +39,9 @@ export const getTour = async (req, res) => {
         const id = req.params.id
 
         const tour = await Tour.findById(id)
-
+        if (!tour) {
+            throw new Error("There is no Tour with this ID, Please Check The ID")
+        }
         res.status(200).json({
             status: "success",
             data: {
@@ -142,3 +112,44 @@ export const createTour = async (req, res) => {
     }
 }
 
+export const getTourStats = async (req, res) => {
+    try {
+        const stats = await Tour.aggregate([
+            {
+                $match: { ratingsAverage: { $gte: 4.5 } }
+            },
+            {
+                $group: {
+                    _id: { $toUpper: "$difficulty" },
+                    // _id: { $toUpper: "$duration" },
+                    // _id: { $toUpper: "$createdAt" },
+                    // _id: "$ratingsAverage",
+                    numOfTours: { $sum: 1 },
+                    numOfRatings: { $sum: "$ratingsQuantity" },
+                    avgRating: { $avg: '$ratingsAverage' },
+                    avgPrice: { $avg: '$price' },
+                    minPrice: { $min: '$price' },
+                    maxPrice: { $max: '$price' },
+                }
+            },
+            {
+                $sort: { avgPrice: -1 }
+            },
+            // {
+            //     $match: { _id: { $ne: "EASY" } }
+            // }
+        ])
+
+        res.status(200).json({
+            status: "success",
+            data: {
+                stats
+            }
+        })
+    } catch (error) {
+        res.status(400).json({
+            status: "failed",
+            message: error.message
+        })
+    }
+}
