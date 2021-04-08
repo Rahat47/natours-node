@@ -5,7 +5,8 @@ import morgan from "morgan";
 import tourRouter from './routes/tourRoutes.js'
 import userRouter from './routes/userRoutes.js'
 import { nodeEnv } from './variables.js';
-
+import AppError from './utils/appError.js'
+import { globalErrorHandler } from './controllers/errorController.js';
 const __dirname = path.resolve()
 //!DEEFINE THE APP
 const app = express()
@@ -29,7 +30,16 @@ app.use("/api/v1/tours", tourRouter)
 app.use("/api/v1/users", userRouter)
 
 app.get('/', (req, res) => {
-    res.send('GET request to the homepage')
+    res.send('Welcome to natours API')
 })
+
+
+app.all("*", (req, res, next) => {
+    const err = new AppError(`Sorry, we can't find ${req.originalUrl} in the server!`, 404)
+    next(err)
+})
+
+
+app.use(globalErrorHandler)
 
 export default app
