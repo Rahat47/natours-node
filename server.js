@@ -1,10 +1,8 @@
-
 import app from "./app.js";
 import mongoose from 'mongoose'
 import chalk from 'chalk'
-import { port, dbUser, dbPass, dbName } from "./variables.js";
 
-const dburi = `mongodb+srv://${dbUser}:${dbPass}@azurehk.jxbko.mongodb.net/${dbName}?retryWrites=true&w=majority`
+const dburi = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@azurehk.jxbko.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
 
 //?LAST STAND FOR ERRORS
 process.on("uncaughtException", (err) => {
@@ -23,7 +21,7 @@ mongoose.connect(dburi, {
 }).catch(err => {
     console.log(err);
 })
-
+const port = process.env.PORT
 
 const server = app.listen(port, () => {
     console.log(chalk.bold.blueBright(`App running on port ${port}`));

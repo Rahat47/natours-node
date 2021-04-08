@@ -1,4 +1,3 @@
-import { nodeEnv } from "../variables.js"
 import AppError from '../utils/appError.js'
 
 //!MongoDB ERROR HANDLERS
@@ -52,10 +51,10 @@ export const globalErrorHandler = (err, req, res, next) => {
     err.statusCode = err.statusCode || 500
     err.status = err.status || "error"
 
-    if (nodeEnv === 'development') {
+    if (process.env.NODE_ENV === 'development') {
         sendErrorDev(err, res)
 
-    } else if (nodeEnv === 'production') {
+    } else if (process.env.NODE_ENV === 'production') {
         let error = { ...err }
         console.log(error);
         if (error.name === "CastError" || error.kind === "ObjectId") {
