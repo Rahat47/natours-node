@@ -1,4 +1,25 @@
 import { nodeEnv } from "../variables.js"
+import AppError from '../utils/appError.js'
+
+//!MongoDB ERROR HANDLERS
+const handleCastErrorDB = (err) => {
+    const message = `Invalid ${err.path}: ${err.value}`
+    return new AppError(message, 400)
+}
+
+const handleDuplicateValueDB = (err) => {
+    const message = `There is another document with the Name "${err.keyValue.name}". The Name must be unique,`
+    return new AppError(message, 400)
+}
+
+const handleValidationErrorDB = (err) => {
+    const errors = Object.values(err.errors).map(er => er.message)
+
+    const message = `Invalid Input Data. ${errors.join(". ")}`
+    return new AppError(message, 400)
+}
+//!^^^^^^^^^^^^ MongoDB Error Handlers End ^^^^^^^^^^^^^//
+
 const sendErrorDev = (err, res) => {
     res.status(err.statusCode).json({
         status: err.status,
@@ -25,7 +46,6 @@ const sendErrorProd = (err, res) => {
             message: "Something went wrong."
         })
     }
-
 }
 
 export const globalErrorHandler = (err, req, res, next) => {
@@ -34,7 +54,20 @@ export const globalErrorHandler = (err, req, res, next) => {
 
     if (nodeEnv === 'development') {
         sendErrorDev(err, res)
+
     } else if (nodeEnv === 'production') {
-        sendErrorProd(err, res)
+        let error = { ...err }
+        console.log(error);
+        if (error.name === "CastError" || error.kind === "ObjectId") {
+            error = handleCastErrorDB(error)
+        }
+        if (error.code === 11000) {
+            error = handleDuplicateValueDB(error)
+        }
+        if (error.name === "ValidationError" || error._message === "Validation failed") {
+            error = handleValidationErrorDB(error)
+        }
+
+        sendErrorProd(error, res)
     }
 }
