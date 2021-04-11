@@ -17,6 +17,6 @@ router.route('/')
 router.route("/:id")
     .get(getTour)
     .patch(updateTour)
-    .delete(deleteTour)
+    .delete(protect, deleteTour)
 
 export default router
