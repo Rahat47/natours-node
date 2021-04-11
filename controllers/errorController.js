@@ -19,6 +19,18 @@ const handleValidationErrorDB = (err) => {
 }
 //!^^^^^^^^^^^^ MongoDB Error Handlers End ^^^^^^^^^^^^^//
 
+//! JWT ERROR HANDLERS
+const handleInvalidJWT = (err) => {
+    const message = "You have provided an Invalid Token. Please Log In again"
+    return new AppError(message, 401)
+}
+
+const handleExpiredJWT = (err) => {
+    const message = `Your Current Logged In session expired at ${new Date(err.expiredAt).toDateString()}. Please Log in Again.`
+    return new AppError(message, 401)
+}
+
+//!^^^^^^^^^^^^ JWT Error Handlers End ^^^^^^^^^^^^^//
 const sendErrorDev = (err, res) => {
     res.status(err.statusCode).json({
         status: err.status,
@@ -65,6 +77,13 @@ export const globalErrorHandler = (err, req, res, next) => {
         }
         if (error.name === "ValidationError" || error._message === "Validation failed") {
             error = handleValidationErrorDB(error)
+        }
+
+        if (error.name === "JsonWebTokenError") {
+            error = handleInvalidJWT(error)
+        }
+        if (error.name === "TokenExpiredError") {
+            error = handleExpiredJWT(error)
         }
 
         sendErrorProd(error, res)
