@@ -15,7 +15,7 @@ process.on("uncaughtException", (err) => {
 mongoose.connect(dburi, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
-    useCreateIndex: true
+    useCreateIndex: true,
 }).then(() => {
     console.log(chalk.bold.yellowBright("database connected and running"));
 }).catch(err => {
