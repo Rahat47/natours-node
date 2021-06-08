@@ -6,15 +6,24 @@ import tourRouter from './routes/tourRoutes.js'
 import userRouter from './routes/userRoutes.js'
 import AppError from './utils/appError.js'
 import { globalErrorHandler } from './controllers/errorController.js';
+import rateLimit from 'express-rate-limit';
+
 const __dirname = path.resolve()
 //!DEEFINE THE APP
 const app = express()
 
-//?MIDDLEWARES
+//? Global MIDDLEWARES
 if (process.env.NODE_ENV === "development") {
     app.use(morgan("dev"))
 }
 
+const limiter = rateLimit({
+    max: 300,
+    windowMs: 60 * 60 * 1000,
+    message: "Too many requests from the same IP, Please try again in an Hour! "
+})
+
+app.use('/api', limiter)
 app.use(cors())
 app.use(express.json())
 app.use(express.static(`${__dirname}/public`))
