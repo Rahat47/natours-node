@@ -7,25 +7,38 @@ import userRouter from './routes/userRoutes.js'
 import AppError from './utils/appError.js'
 import { globalErrorHandler } from './controllers/errorController.js';
 import rateLimit from 'express-rate-limit';
+import helmet from 'helmet'
 
 const __dirname = path.resolve()
 //!DEEFINE THE APP
 const app = express()
 
 //? Global MIDDLEWARES
+
+//?HELMET PACKAGE TO ADD SECURITY HTTP HEADERS
+app.use(helmet())
+
+//? Using morgan as dev environment
 if (process.env.NODE_ENV === "development") {
     app.use(morgan("dev"))
 }
 
+//? Rate LIMITER
+//? Limits request from a same IP to 300 per hours
 const limiter = rateLimit({
     max: 300,
     windowMs: 60 * 60 * 1000,
     message: "Too many requests from the same IP, Please try again in an Hour! "
 })
-
 app.use('/api', limiter)
+
+//?ENABLES CROSS ORIGIN RESOURCE SHARING
 app.use(cors())
-app.use(express.json())
+
+//? Express Middlewares, Body Parser
+app.use(express.json({ limit: "10mb" }))
+
+//? Serving Static files
 app.use(express.static(`${__dirname}/public`))
 
 //?Simple Middleware..
