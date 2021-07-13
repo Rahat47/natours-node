@@ -8,6 +8,9 @@ import AppError from './utils/appError.js'
 import { globalErrorHandler } from './controllers/errorController.js';
 import rateLimit from 'express-rate-limit';
 import helmet from 'helmet'
+import mongoSanitize from 'express-mongo-sanitize';
+import xss from 'xss-clean'
+import hpp from 'hpp'
 
 const __dirname = path.resolve()
 //!DEEFINE THE APP
@@ -38,8 +41,28 @@ app.use(cors())
 //? Express Middlewares, Body Parser
 app.use(express.json({ limit: "10mb" }))
 
+//? Data Sanitization against noSQL query injection
+app.use(mongoSanitize());
+
+//? Data Sanitization against XSS Attacks
+app.use(xss());
+
+//? parameter pollution prevent
+app.use(hpp({
+    whitelist: [
+        "duration",
+        "ratingsAverage",
+        "ratingsQuantity",
+        "maxGroupSize",
+        "difficulty",
+        "price"
+    ]
+}))
+
 //? Serving Static files
 app.use(express.static(`${__dirname}/public`))
+
+
 
 //?Simple Middleware..
 app.use((req, res, next) => {
