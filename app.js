@@ -62,8 +62,6 @@ app.use(hpp({
 //? Serving Static files
 app.use(express.static(`${__dirname}/public`))
 
-
-
 //?Simple Middleware..
 app.use((req, res, next) => {
     req.requestTime = new Date().toISOString()
