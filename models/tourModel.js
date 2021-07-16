@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import slugify from 'slugify'
+// import User from './userModel.js';
 // import validator from 'validator'
 const tourSchema = new mongoose.Schema({
     name: {
@@ -100,6 +101,12 @@ const tourSchema = new mongoose.Schema({
             description: String,
             day: Number
         }
+    ],
+    guides: [
+        {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User"
+        }
     ]
 
 }, {
@@ -116,12 +123,29 @@ tourSchema.pre("save", function (next) {
     this.slug = slugify(this.name, { lower: true })
     next()
 })
+
+// tourSchema.pre("save", async function (next) {
+//     const guidesPromises = this.guides.map(async id => await User.findById(id))
+
+//     this.guides = await Promise.all(guidesPromises)
+
+//     next()
+// })
 //QUERY MIDDLEWARE, 
 
 // tourSchema.pre("find", function (next) {
 tourSchema.pre(/^find/, function (next) {
     this.find({ secretTour: { $ne: true } })
     this.start = Date.now()
+    next()
+})
+
+// create a tourSchema pre middleware with regex /^find/ and in the callback function body call next with a populate query
+tourSchema.pre(/^find/, function (next) {
+    this.populate({
+        path: "guides",
+        select: "-__v -passwordChangedAt"
+    })
     next()
 })
 
