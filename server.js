@@ -16,6 +16,7 @@ mongoose.connect(dburi, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     useCreateIndex: true,
+    useFindAndModify: false
 }).then(() => {
     console.log(chalk.bold.yellowBright("database connected and running"));
 }).catch(err => {
