@@ -2,6 +2,9 @@ import mongoose from 'mongoose'
 import validator from 'validator'
 import bcrypt from 'bcryptjs'
 import crypto from 'crypto'
+
+
+// Password for all dummy data is 'test1234'
 const userSchema = new mongoose.Schema({
     name: {
         type: String,

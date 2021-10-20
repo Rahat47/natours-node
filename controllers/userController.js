@@ -1,6 +1,7 @@
 import User from "../models/userModel.js"
 import { catchAsync } from "../utils/catchAsync.js"
 import AppError from '../utils/appError.js'
+import { deleteOne, getAll, getOne, updateOne } from "./handlerFactory.js"
 
 
 const filterObj = (obj, ...allowedFields) => {
@@ -15,18 +16,10 @@ const filterObj = (obj, ...allowedFields) => {
 }
 
 
-export const getAllUsers = catchAsync(async (req, res, next) => {
-    const users = await User.find()
-
-    res.status(200).json({
-        status: "success",
-        results: users.length,
-        data: {
-            users
-        }
-    })
-})
-
+export const getMe = (req, res, next) => {
+    req.params.id = req.user.id
+    next()
+}
 
 export const deleteMe = catchAsync(async (req, res, next) => {
     await User.findByIdAndUpdate(req.user.id, { active: false })
@@ -61,29 +54,16 @@ export const updateMe = catchAsync(async (req, res, next) => {
     })
 })
 
+
+
+export const getAllUsers = getAll(User)
+export const updateUser = updateOne(User)
+export const getUser = getOne(User)
+export const deleteUser = deleteOne(User)
+
 export const createUser = (req, res) => {
     res.status(500).json({
         status: "failed",
-        message: "Route is not implemented yet...."
-    })
-}
-
-export const updateUser = (req, res) => {
-    res.status(500).json({
-        status: "failed",
-        message: "Route is not implemented yet."
-    })
-}
-
-export const getUser = (req, res) => {
-    res.status(500).json({
-        status: "failed",
-        message: "Route is not implemented yet."
-    })
-}
-export const deleteUser = (req, res) => {
-    res.status(500).json({
-        status: "failed",
-        message: "Route is not implemented yet."
+        message: "Route is not Defined! Please use /signup instead."
     })
 }

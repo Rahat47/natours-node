@@ -1,7 +1,8 @@
 import Tour from '../models/tourModel.js'
-import APIFeatures from '../utils/apiFeatures.js'
+// import APIFeatures from '../utils/apiFeatures.js'
 import { catchAsync } from '../utils/catchAsync.js'
-import AppError from '../utils/appError.js'
+// import AppError from '../utils/appError.js'
+import { createOne, deleteOne, getAll, getOne, updateOne } from './handlerFactory.js'
 export const aliasTopTours = async (req, res, next) => {
     req.query.limit = "5"
     req.query.sort = "price,-ratingsAverage"
@@ -9,80 +10,6 @@ export const aliasTopTours = async (req, res, next) => {
     next()
 }
 
-export const getAllTours = catchAsync(async (req, res, next) => {
-    const features = new APIFeatures(Tour.find(), req.query)
-        .filter()
-        .sort()
-        .limitFields()
-        .paginate()
-
-    const tours = await features.query
-
-    res.status(200).json({
-        status: "success",
-        results: tours.length,
-        data: {
-            tours
-        }
-    })
-})
-
-export const getTour = catchAsync(async (req, res, next) => {
-    const id = req.params.id
-
-    const tour = await Tour.findById(id)
-    if (!tour) {
-        return next(new AppError("No Tour Found With this ID, Please Check The ID", 404))
-    }
-    res.status(200).json({
-        status: "success",
-        data: {
-            tour
-        }
-    })
-})
-
-export const updateTour = catchAsync(async (req, res, next) => {
-    const id = req.params.id
-
-    const tour = await Tour.findByIdAndUpdate(id, req.body, {
-        new: true,
-        runValidators: true
-    })
-    if (!tour) {
-        return next(new AppError("No Tour Found With this ID, Please Check The ID", 404))
-    }
-    res.status(200).json({
-        status: "success",
-        data: {
-            tour
-        }
-    })
-})
-
-export const deleteTour = catchAsync(async (req, res, next) => {
-    const id = req.params.id
-    const tour = await Tour.findByIdAndDelete(id)
-
-    if (!tour) {
-        return next(new AppError("No Tour Found With this ID, Please Check The ID", 404))
-    }
-    res.status(204).json({
-        status: "success",
-        data: null
-    })
-})
-
-
-export const createTour = catchAsync(async (req, res, next) => {
-    const newTour = await Tour.create(req.body)
-    res.status(201).json({
-        status: "success",
-        data: {
-            tour: newTour
-        }
-    })
-})
 
 export const getTourStats = catchAsync(async (req, res, next) => {
     const stats = await Tour.aggregate([
@@ -92,9 +19,6 @@ export const getTourStats = catchAsync(async (req, res, next) => {
         {
             $group: {
                 _id: { $toUpper: "$difficulty" },
-                // _id: { $toUpper: "$duration" },
-                // _id: { $toUpper: "$createdAt" },
-                // _id: "$ratingsAverage",
                 numOfTours: { $sum: 1 },
                 numOfRatings: { $sum: "$ratingsQuantity" },
                 avgRating: { $avg: '$ratingsAverage' },
@@ -106,9 +30,6 @@ export const getTourStats = catchAsync(async (req, res, next) => {
         {
             $sort: { avgPrice: -1 }
         },
-        // {
-        //     $match: { _id: { $ne: "EASY" } }
-        // }
     ])
 
     res.status(200).json({
@@ -155,3 +76,9 @@ export const getMonthlyPlan = catchAsync(async (req, res, next) => {
         }
     })
 })
+
+export const getAllTours = getAll(Tour)
+export const getTour = getOne(Tour, { path: 'reviews' })
+export const updateTour = updateOne(Tour)
+export const deleteTour = deleteOne(Tour)
+export const createTour = createOne(Tour)
