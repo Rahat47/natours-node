@@ -10,7 +10,7 @@ const __dirname = path.resolve();
 console.log(__dirname);
 dotenv.config()
 
-const dburi = `mongodb+srv://natours:eSdmxy1t5VJ1yLYe@azurehk.jxbko.mongodb.net/natours?retryWrites=true&w=majority`
+const dburi = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@azurehk.jxbko.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`
 
 
 mongoose.connect(dburi, {
