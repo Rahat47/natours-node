@@ -1,7 +1,6 @@
 import Tour from '../models/tourModel.js'
-// import APIFeatures from '../utils/apiFeatures.js'
+import AppError from '../utils/appError.js'
 import { catchAsync } from '../utils/catchAsync.js'
-// import AppError from '../utils/appError.js'
 import { createOne, deleteOne, getAll, getOne, updateOne } from './handlerFactory.js'
 export const aliasTopTours = async (req, res, next) => {
     req.query.limit = "5"
@@ -10,6 +9,11 @@ export const aliasTopTours = async (req, res, next) => {
     next()
 }
 
+export const getAllTours = getAll(Tour)
+export const getTour = getOne(Tour, { path: 'reviews' })
+export const updateTour = updateOne(Tour)
+export const deleteTour = deleteOne(Tour)
+export const createTour = createOne(Tour)
 
 export const getTourStats = catchAsync(async (req, res, next) => {
     const stats = await Tour.aggregate([
@@ -77,8 +81,66 @@ export const getMonthlyPlan = catchAsync(async (req, res, next) => {
     })
 })
 
-export const getAllTours = getAll(Tour)
-export const getTour = getOne(Tour, { path: 'reviews' })
-export const updateTour = updateOne(Tour)
-export const deleteTour = deleteOne(Tour)
-export const createTour = createOne(Tour)
+export const getToursWithin = catchAsync(async (req, res, next) => {
+    const { distance, latlng, unit } = req.params
+
+    const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1
+
+    const [lat, lng] = latlng.split(',')
+
+    if (!lat || !lng) {
+        next(new AppError('Please provide latitute and longitude in the format lat,lng', 400))
+    }
+
+    const tours = await Tour.find({
+        startLocation: { $geoWithin: { $centerSphere: [[lng, lat], radius] } }
+    })
+
+    res.status(200).json({
+        status: "success",
+        results: tours.length,
+        data: {
+            data: tours
+        },
+        message: "Data fetched successfully"
+    })
+
+})
+
+
+export const getDistances = catchAsync(async (req, res, next) => {
+    const { latlng, unit } = req.params
+
+    const [lat, lng] = latlng.split(',')
+
+    if (!lat || !lng) {
+        next(new AppError('Please provide latitute and longitude in the format lat,lng', 400))
+    }
+
+    const distances = await Tour.aggregate([
+        {
+            $geoNear: {
+                near: {
+                    type: 'Point',
+                    coordinates: [lng * 1, lat * 1]
+                },
+                distanceField: "distance",
+                distanceMultiplier: unit === 'mi' ? 0.000621371 : 0.001
+            }
+        },
+        {
+            $project: {
+                distance: 1,
+                name: 1,
+            }
+        }
+    ])
+
+    res.status(200).json({
+        status: "success",
+        data: {
+            data: distances
+        },
+        message: "Data fetched successfully"
+    })
+})

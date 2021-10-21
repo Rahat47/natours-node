@@ -36,6 +36,8 @@ export const reviewSchema = new mongoose.Schema({
     }
 )
 
+// Prevent user from submitting review more than once
+reviewSchema.index({ tour: 1, user: 1 }, { unique: true })
 
 reviewSchema.pre(/^find/, function (next) {
     this.populate({
@@ -58,11 +60,10 @@ reviewSchema.statics.calcAverageRatings = async function (tourId) {
             }
         }
     ])
-    console.log(stats)
     if (stats.length > 0) {
         await Tour.findByIdAndUpdate(tourId, {
             ratingsQuantity: stats[0].nRating,
-            ratingsAverage: Math.round(stats[0].avgRating * 10) / 10
+            ratingsAverage: stats[0].avgRating,
         })
     } else {
         await Tour.findByIdAndUpdate(tourId, {
