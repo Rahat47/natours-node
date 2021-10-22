@@ -18,6 +18,11 @@ const __dirname = path.resolve()
 const app = express()
 
 //? Global MIDDLEWARES
+app.set('view engine', 'pug')
+app.set('views', path.join(__dirname, 'views'))
+
+//? Serving Static files
+app.use(express.static(path.join(__dirname, 'public')))
 
 //?HELMET PACKAGE TO ADD SECURITY HTTP HEADERS
 app.use(helmet())
@@ -60,8 +65,7 @@ app.use(hpp({
     ]
 }))
 
-//? Serving Static files
-app.use(express.static(`${__dirname}/public`))
+
 
 //?Simple Middleware..
 app.use((req, res, next) => {
@@ -69,6 +73,15 @@ app.use((req, res, next) => {
     next()
 })
 //? Routes
+
+app.get("/", (req, res) => {
+    res.render("base", {
+        title: "Home Page",
+        tour: "My Tour",
+        year: new Date().getFullYear()
+    })
+})
+
 app.use("/api/v1/tours", tourRouter)
 app.use("/api/v1/users", userRouter)
 app.use("/api/v1/reviews", reviewRouter)
