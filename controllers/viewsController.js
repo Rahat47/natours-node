@@ -7,14 +7,15 @@ export const getOverview = catchAsync(async (req, res, next) => {
     const tours = await Tour.find()
     // build template
 
-    // render template using tour data from db
-
-
-    res.status(200).render('overview', {
-        title: 'All Tours',
-        year: new Date().getFullYear(),
-        tours
-    })
+    res.status(200)
+        .set({
+            'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';"
+        })
+        .render('overview', {
+            title: 'All Tours',
+            year: new Date().getFullYear(),
+            tours
+        })
 })
 
 export const getTour = catchAsync(async (req, res, next) => {
@@ -28,7 +29,7 @@ export const getTour = catchAsync(async (req, res, next) => {
 
     res.status(200)
         .set({
-            'Content-Security-Policy': "default-src 'self' https://*.mapbox.com ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com https://api.mapbox.com 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;"
+            'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * data: blob: 'unsafe-inline' 'unsafe-eval'; connect-src * data: blob: 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src * data: blob: ; style-src * data: blob: 'unsafe-inline'; font-src * data: blob: 'unsafe-inline'; worker-src * data: blob: 'unsafe-inline';"
         })
         .render('tour', {
             title: tour.name,
@@ -36,3 +37,15 @@ export const getTour = catchAsync(async (req, res, next) => {
             tour
         })
 })
+
+
+export const getLoginForm = (req, res) => {
+    res.status(200)
+        .set({
+            'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';"
+        })
+        .render('login', {
+            title: 'Log into your account',
+            year: new Date().getFullYear()
+        })
+}

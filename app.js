@@ -13,6 +13,7 @@ import helmet from 'helmet'
 import mongoSanitize from 'express-mongo-sanitize';
 import xss from 'xss-clean'
 import hpp from 'hpp'
+import cookieParser from 'cookie-parser'
 
 const __dirname = path.resolve()
 //!DEEFINE THE APP
@@ -47,6 +48,8 @@ app.use(cors())
 
 //? Express Middlewares, Body Parser
 app.use(express.json({ limit: "10mb" }))
+app.use(express.urlencoded({ extended: true, limit: "10mb" }))
+app.use(cookieParser())
 
 //? Data Sanitization against noSQL query injection
 app.use(mongoSanitize());
