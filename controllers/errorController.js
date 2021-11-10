@@ -31,32 +31,59 @@ const handleExpiredJWT = (err) => {
 }
 
 //!^^^^^^^^^^^^ JWT Error Handlers End ^^^^^^^^^^^^^//
-const sendErrorDev = (err, res) => {
-    res.status(err.statusCode).json({
-        status: err.status,
-        error: err,
-        message: err.message,
-        stack: err.stack,
-    })
-}
-
-const sendErrorProd = (err, res) => {
-    // Operational , Trusted eror that we want to send to client
-    if (err.isOperational) {
+const sendErrorDev = (err, req, res) => {
+    if (req.originalUrl.startsWith("/api")) {
         res.status(err.statusCode).json({
             status: err.status,
+            error: err,
             message: err.message,
+            stack: err.stack,
         })
-
     } else {
+        console.log("Error: ", err)
+        // Render Error template
+        res.status(err.statusCode).render("error", {
+            title: "Something went wrong",
+            msg: err.message,
+        })
+    }
+}
+
+const sendErrorProd = (err, req, res) => {
+    // Operational , Trusted eror that we want to send to client
+    if (req.originalUrl.startsWith("/api")) {
+        if (err.isOperational) {
+            return res.status(err.statusCode).json({
+                status: err.status,
+                message: err.message,
+            })
+
+        }
         //Programming or other errors that we do not want to send to client
         console.error("Error: ", err)
 
-        res.status(500).json({
+        return res.status(500).json({
             status: "error",
             message: "Something went wrong."
         })
+
     }
+
+    // ?Render Error template
+    if (err.isOperational) {
+        return res.status(err.statusCode).render("error", {
+            title: "Something went wrong",
+            msg: err.message,
+        })
+
+    }
+    //Programming or other errors that we do not want to send to client
+    console.error("Error: ", err)
+
+    return res.status(500).render("error", {
+        title: "Something went wrong",
+        msg: "Please try again later.",
+    })
 }
 
 export const globalErrorHandler = (err, req, res, next) => {
@@ -64,11 +91,11 @@ export const globalErrorHandler = (err, req, res, next) => {
     err.status = err.status || "error"
 
     if (process.env.NODE_ENV === 'development') {
-        sendErrorDev(err, res)
+        sendErrorDev(err, req, res)
 
     } else if (process.env.NODE_ENV === 'production') {
-        let error = { ...err }
-        console.log(error);
+        let error = Object.create(err);
+
         if (error.name === "CastError" || error.kind === "ObjectId") {
             error = handleCastErrorDB(error)
         }
@@ -86,6 +113,6 @@ export const globalErrorHandler = (err, req, res, next) => {
             error = handleExpiredJWT(error)
         }
 
-        sendErrorProd(error, res)
+        sendErrorProd(error, req, res)
     }
 }

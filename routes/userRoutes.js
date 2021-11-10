@@ -1,11 +1,12 @@
 import express from 'express'
-import { forgotPassword, login, protect, resetPassword, restrictTo, signup, updatePassword } from '../controllers/authController.js'
+import { forgotPassword, login, logout, protect, resetPassword, restrictTo, signup, updatePassword } from '../controllers/authController.js'
 import { createUser, deleteMe, deleteUser, getAllUsers, getMe, getUser, updateMe, updateUser } from '../controllers/userController.js'
 
 const router = express.Router()
 
 router.post("/signup", signup)
 router.post("/login", login)
+router.get("/logout", logout)
 router.post("/forgotPassword", forgotPassword)
 router.patch("/resetPassword/:token", resetPassword)
 

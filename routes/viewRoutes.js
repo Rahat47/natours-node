@@ -7,7 +7,8 @@ const router = express.Router()
 router.use(isLoggedIn)
 
 router.get('/', getOverview)
-router.get('/tour/:slug', getTour)
+
+router.get('/tour/:slug', isLoggedIn, getTour)
 
 router.get('/login', getLoginForm)
 router.get('/me', protect)

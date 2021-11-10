@@ -1,9 +1,10 @@
 import '@babel/polyfill';
-import { login } from "./login";
+import { login, logout } from "./login";
 import initMap from './mapbox';
-
 // Get the form for login page
 const form = document.querySelector('.form');
+const logoutBtn = document.querySelector('.nav__el--logout');
+
 
 // get the map from the DOM
 const map = document.getElementById('map');
@@ -24,4 +25,9 @@ if (form) {
 
         login(email, password);
     })
+}
+
+
+if (logoutBtn) {
+    logoutBtn.addEventListener('click', logout);
 }
