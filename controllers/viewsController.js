@@ -1,4 +1,5 @@
 import Tour from "../models/tourModel.js"
+import User from "../models/userModel.js"
 import AppError from "../utils/appError.js"
 import { catchAsync } from "../utils/catchAsync.js"
 
@@ -54,3 +55,35 @@ export const getLoginForm = (req, res) => {
             year: new Date().getFullYear()
         })
 }
+
+export const getAccount = (req, res) => {
+    res.status(200)
+        .set({
+            'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';"
+        })
+        .render('account', {
+            title: 'Your account',
+            year: new Date().getFullYear()
+        })
+}
+
+
+export const updateUserData = catchAsync(async (req, res, next) => {
+    const updatedUser = await User.findByIdAndUpdate(req.user.id, {
+        name: req.body.name,
+        email: req.body.email
+    }, {
+        new: true,
+        runValidators: true
+    })
+
+    res.status(200)
+        .set({
+            'Content-Security-Policy': "default-src * 'unsafe-inline' 'unsafe-eval'; script-src * 'unsafe-inline' 'unsafe-eval'; connect-src * 'unsafe-inline'; img-src * data: blob: 'unsafe-inline'; frame-src *; style-src * 'unsafe-inline';"
+        })
+        .render('account', {
+            title: 'Your account',
+            year: new Date().getFullYear(),
+            user: updatedUser
+        })
+})

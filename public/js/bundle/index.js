@@ -464,9 +464,12 @@ var _polyfill = require("@babel/polyfill");
 var _login = require("./login");
 var _mapbox = require("./mapbox");
 var _mapboxDefault = parcelHelpers.interopDefault(_mapbox);
+var _updateSettings = require("./updateSettings");
 // Get the form for login page
-const form = document.querySelector('.form');
+const form = document.querySelector('.form--login');
 const logoutBtn = document.querySelector('.nav__el--logout');
+const userForm = document.querySelector('.form-user-data');
+const userSettingsForm = document.querySelector('.form-user-settings');
 // get the map from the DOM
 const map = document.getElementById('map');
 // get the locations from the map data
@@ -478,9 +481,11 @@ if (form) form.addEventListener('submit', (e)=>{
     const password = document.getElementById('password').value;
     _login.login(email, password);
 });
+if (userForm) userForm.addEventListener('submit', _updateSettings.updateUserData);
+if (userSettingsForm) userSettingsForm.addEventListener('submit', _updateSettings.updatePassword);
 if (logoutBtn) logoutBtn.addEventListener('click', _login.logout);
 
-},{"./login":"dGE70","@babel/polyfill":"9Gz38","./mapbox":"4IXAW","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"dGE70":[function(require,module,exports) {
+},{"./login":"dGE70","@babel/polyfill":"9Gz38","./mapbox":"4IXAW","@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","./updateSettings":"lpQ8T"}],"dGE70":[function(require,module,exports) {
 var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
 parcelHelpers.defineInteropFlag(exports);
 parcelHelpers.export(exports, "login", ()=>login
@@ -9266,6 +9271,73 @@ function initMap(locations) {
 }
 exports.default = initMap;
 
-},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}]},["iMsmj","8KZ4A"], "8KZ4A", "parcelRequire9a77")
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV"}],"lpQ8T":[function(require,module,exports) {
+var parcelHelpers = require("@parcel/transformer-js/src/esmodule-helpers.js");
+parcelHelpers.defineInteropFlag(exports);
+parcelHelpers.export(exports, "updateUserData", ()=>updateUserData
+);
+parcelHelpers.export(exports, "updatePassword", ()=>updatePassword
+);
+var _axios = require("axios");
+var _axiosDefault = parcelHelpers.interopDefault(_axios);
+var _alerts = require("./alerts");
+const updateUserData = (event)=>{
+    const name = document.getElementById('name');
+    const email = document.getElementById('email');
+    event.preventDefault();
+    const data = {
+        name: name.value,
+        email: email.value
+    };
+    const url = '/api/v1/users/updateMe';
+    const method = "PATCH";
+    _axiosDefault.default({
+        url,
+        method,
+        data
+    }).then(({ data  })=>{
+        name.value = data.data.user.name;
+        email.value = data.data.user.email;
+        _alerts.showAlert('success', "Successfully Updated!!!");
+    }).catch((error)=>{
+        _alerts.showAlert('error', error.response.data.message);
+    });
+};
+const updatePassword = (event)=>{
+    const oldPassword = document.getElementById('password-current');
+    const newPassword = document.getElementById('password');
+    const confirmPassword = document.getElementById('password-confirm');
+    const button = document.querySelector('.btn-save-password');
+    // disable the button and set it to loading
+    button.disabled = true;
+    button.textContent = 'Loading...';
+    event.preventDefault();
+    const data = {
+        currentPassword: oldPassword.value,
+        password: newPassword.value,
+        passwordConfirm: confirmPassword.value
+    };
+    const url = '/api/v1/users/updatePassword';
+    const method = "PATCH";
+    _axiosDefault.default({
+        url,
+        method,
+        data
+    }).then(({ data  })=>{
+        oldPassword.value = '';
+        newPassword.value = '';
+        confirmPassword.value = '';
+        button.disabled = false;
+        button.textContent = 'Updated!';
+        _alerts.showAlert('success', "Successfully Updated Password!!!");
+        setTimeout(()=>{
+            window.location.reload();
+        }, 2000);
+    }).catch((error)=>{
+        _alerts.showAlert('error', error.response.data.message);
+    });
+};
+
+},{"@parcel/transformer-js/src/esmodule-helpers.js":"ciiiV","axios":"1IeuP","./alerts":"cSQ58"}]},["iMsmj","8KZ4A"], "8KZ4A", "parcelRequire9a77")
 
 //# sourceMappingURL=index.js.map
